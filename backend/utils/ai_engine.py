@@ -16,7 +16,6 @@ if not api_key_env:
         "containing: GEMINI_API_KEY=your_actual_key"
     )
 
-client = genai.Client(api_key=api_key_env)
 MODEL_ID = 'gemini-3.5-flash'
 
 def generate_learning_roadmap(role_title, missing_skills):
@@ -37,11 +36,13 @@ def generate_learning_roadmap(role_title, missing_skills):
     """
     
     try:
-        response = client.models.generate_content(
-            model=MODEL_ID,
-            contents=prompt
-        )
-        return response.text
+        # Using a context manager ensures the SDK correctly binds the client credentials
+        with genai.Client(api_key=api_key_env) as client:
+            response = client.models.generate_content(
+                model=MODEL_ID,
+                contents=prompt
+            )
+            return response.text
     except Exception as e:
         return f"❌ Error connecting to Gemini API: {e}"
 
@@ -67,10 +68,11 @@ def generate_interview_feedback(role_title, question, student_answer):
     """
     
     try:
-        response = client.models.generate_content(
-            model=MODEL_ID,
-            contents=prompt
-        )
-        return response.text
+        with genai.Client(api_key=api_key_env) as client:
+            response = client.models.generate_content(
+                model=MODEL_ID,
+                contents=prompt
+            )
+            return response.text
     except Exception as e:
         return f"❌ Error evaluating answer: {e}"
