@@ -1,0 +1,10 @@
+streamlit 
+langchain 
+langchain-community 
+chromadb 
+sentence-transformers 
+spacy 
+google-genai 
+sqlalchemy 
+pydantic 
+pdfplumber
