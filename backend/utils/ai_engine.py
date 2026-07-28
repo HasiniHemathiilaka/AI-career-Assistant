@@ -1,6 +1,5 @@
 import os
-from google import genai
-from google.genai import types
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 # Automatically load variables from the .env file
@@ -16,7 +15,11 @@ if not api_key_env:
         "containing: GEMINI_API_KEY=your_actual_key"
     )
 
-MODEL_ID = 'gemini-3.5-flash'
+# Configure the SDK with your key (works perfectly with AQ. prefixes)
+genai.configure(api_key=api_key_env)
+
+# Using the robust gemini-1.5-flash model
+MODEL_NAME = 'gemini-1.5-flash'
 
 def generate_learning_roadmap(role_title, missing_skills):
     """
@@ -36,13 +39,9 @@ def generate_learning_roadmap(role_title, missing_skills):
     """
     
     try:
-        # Using a context manager ensures the SDK correctly binds the client credentials
-        with genai.Client(api_key=api_key_env) as client:
-            response = client.models.generate_content(
-                model=MODEL_ID,
-                contents=prompt
-            )
-            return response.text
+        model = genai.GenerativeModel(MODEL_NAME)
+        response = model.generate_content(prompt)
+        return response.text
     except Exception as e:
         return f"❌ Error connecting to Gemini API: {e}"
 
@@ -68,11 +67,40 @@ def generate_interview_feedback(role_title, question, student_answer):
     """
     
     try:
-        with genai.Client(api_key=api_key_env) as client:
-            response = client.models.generate_content(
-                model=MODEL_ID,
-                contents=prompt
-            )
-            return response.text
+        model = genai.GenerativeModel(MODEL_NAME)
+        response = model.generate_content(prompt)
+        return response.text
     except Exception as e:
         return f"❌ Error evaluating answer: {e}"
+
+def generate_cover_letter(role_title, company, job_description, candidate_name, candidate_skills):
+    """
+    Module 7: Generates a professional, personalized cover letter based on 
+    the user's resume profile and job specifications.
+    """
+    skills_str = ", ".join(candidate_skills) if candidate_skills else "software engineering concepts"
+    
+    prompt = f"""
+    You are a professional career coach and expert resume writer.
+    Write a highly tailored, persuasive, and professional cover letter for an applicant named {candidate_name}.
+    
+    Target Role: {role_title}
+    Target Company: {company}
+    Job Description: {job_description}
+    Candidate Key Skills: {skills_str}
+    
+    Requirements:
+    - Keep it under 350 words and structure it with 3-4 clear paragraphs (Hook/Opening, Value Match, Closing).
+    - Highlight how the candidate's skills align directly with the job requirements.
+    - Sound authentic, confident, and professional without using overly clunky AI buzzwords (like 'delve' or 'tapestry').
+    - Include formal placeholders like [Date] or [City, State] where necessary.
+    """
+    
+    try:
+        response = client.models.generate_content(
+            model=MODEL_ID,
+            contents=prompt
+        )
+        return response.text
+    except Exception as e:
+        return f"❌ Error generating cover letter: {e}"
