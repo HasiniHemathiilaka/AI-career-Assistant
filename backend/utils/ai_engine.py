@@ -1,30 +1,26 @@
 import os
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
-# Automatically load variables from the .env file
-load_dotenv()
+# Force reload of environment variables from .env
+load_dotenv(override=True)
 
-# Pull the token from memory
-api_key_env = os.environ.get("GEMINI_API_KEY")
+api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
-if not api_key_env:
+if not api_key:
     raise ValueError(
-        "❌ Critical: GEMINI_API_KEY was not found! "
-        "Please ensure you created a '.env' file in the root directory "
-        "containing: GEMINI_API_KEY=your_actual_key"
+        "❌ Critical: No valid Gemini API Key found! "
+        "Please add GEMINI_API_KEY=AIzaSy... to your .env file."
     )
 
-# Configure the SDK with your key (works perfectly with AQ. prefixes)
-genai.configure(api_key=api_key_env)
+# Explicitly pass api_key to the client
+client = genai.Client(api_key=api_key)
 
-# Using the robust gemini-1.5-flash model
-MODEL_NAME = 'gemini-1.5-flash'
+# Active Gemini model identifier
+MODEL_ID = 'gemini-3.5-flash'
+
 
 def generate_learning_roadmap(role_title, missing_skills):
-    """
-    Module 4: Generates a tailored, structured 4-week learning roadmap.
-    """
     if not missing_skills:
         return "✨ You already have all the core technical skills listed for this position!"
         
@@ -39,16 +35,16 @@ def generate_learning_roadmap(role_title, missing_skills):
     """
     
     try:
-        model = genai.GenerativeModel(MODEL_NAME)
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model=MODEL_ID,
+            contents=prompt,
+        )
         return response.text
     except Exception as e:
         return f"❌ Error connecting to Gemini API: {e}"
 
+
 def generate_interview_feedback(role_title, question, student_answer):
-    """
-    Module 6: Evaluates a user's mock interview answer.
-    """
     prompt = f"""
     Role: {role_title}
     Interview Question: {question}
@@ -67,17 +63,16 @@ def generate_interview_feedback(role_title, question, student_answer):
     """
     
     try:
-        model = genai.GenerativeModel(MODEL_NAME)
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model=MODEL_ID,
+            contents=prompt,
+        )
         return response.text
     except Exception as e:
         return f"❌ Error evaluating answer: {e}"
 
+
 def generate_cover_letter(role_title, company, job_description, candidate_name, candidate_skills):
-    """
-    Module 7: Generates a professional, personalized cover letter based on 
-    the user's resume profile and job specifications.
-    """
     skills_str = ", ".join(candidate_skills) if candidate_skills else "software engineering concepts"
     
     prompt = f"""
@@ -90,17 +85,94 @@ def generate_cover_letter(role_title, company, job_description, candidate_name, 
     Candidate Key Skills: {skills_str}
     
     Requirements:
-    - Keep it under 350 words and structure it with 3-4 clear paragraphs (Hook/Opening, Value Match, Closing).
+    - Keep it under 350 words and structure it with 3-4 clear paragraphs.
     - Highlight how the candidate's skills align directly with the job requirements.
-    - Sound authentic, confident, and professional without using overly clunky AI buzzwords (like 'delve' or 'tapestry').
+    - Sound authentic, confident, and professional.
     - Include formal placeholders like [Date] or [City, State] where necessary.
     """
     
     try:
         response = client.models.generate_content(
             model=MODEL_ID,
-            contents=prompt
+            contents=prompt,
         )
         return response.text
     except Exception as e:
         return f"❌ Error generating cover letter: {e}"
+
+
+def generate_portfolio_project_ideas(role_title, strengths, missing_skills):
+    """
+    Generates 2-3 tailored portfolio project concepts combining current strengths 
+    with missing skills.
+    """
+    if not missing_skills:
+        return "✨ You already match all required skills! You can build advanced showcase projects for your existing stack."
+
+    strengths_str = ", ".join(strengths) if strengths else "Software Development Basics"
+    missing_str = ", ".join(missing_skills)
+
+    prompt = f"""
+    You are a principal software engineer and tech career mentor.
+    Target Role: {role_title}
+    Candidate Strengths: [{strengths_str}]
+    Missing Skills to Master: [{missing_str}]
+
+    Propose 2 or 3 realistic, impressive portfolio project ideas that bridge this gap.
+    Each project MUST combine at least 2 of their current strengths with at least 1 of their missing skills.
+
+    Format the output using clear Markdown headers for each project:
+    ### 🚀 [Project Name]
+    * **Objective**: Concise summary of what the project does.
+    * **Core Stack**: Strengths used + Missing skills integrated.
+    * **Key Features**: 3 bullet points.
+    * **Why it Stands Out**: How it proves readiness for {role_title}.
+    """
+
+    try:
+        response = client.models.generate_content(
+            model=MODEL_ID,
+            contents=prompt,
+        )
+        return response.text
+    except Exception as e:
+        return f"❌ Error generating project ideas: {e}"
+
+
+def generate_project_readme_starter(project_name, role_title, tech_stack):
+    """
+    Generates a production-grade README.md starter template for a recommended project.
+    """
+    prompt = f"""
+    Generate a professional, production-ready README.md file template for a GitHub project named '{project_name}' 
+    tailored for a candidate applying for a {role_title} position.
+    Tech Stack: {tech_stack}
+
+    Include the following sections strictly in Markdown syntax:
+    # {project_name}
+    Brief project description and value proposition.
+
+    ## 🛠️ Architecture & Tech Stack
+    Bullet points of tech components.
+
+    ## 🚀 Features
+    Key features list.
+
+    ## ⚡ Quick Start & Installation
+    Clear step-by-step terminal instructions for cloning, setup, `.env` configuration, and running locally.
+
+    ## 📊 Folder Structure
+    A clean directory tree layout.
+
+    ## 📝 License & Contact
+    Standard placeholders.
+    """
+
+    try:
+        response = client.models.generate_content(
+            model=MODEL_ID,
+            contents=prompt,
+        )
+        return response.text
+    except Exception as e:
+        return f"❌ Error generating README starter: {e}"

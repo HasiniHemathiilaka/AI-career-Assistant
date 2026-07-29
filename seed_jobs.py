@@ -1,42 +1,53 @@
-from backend.utils.vector_store import add_job_description
+import sys
+from pathlib import Path
 
-def seed():
-    print("🌾 Seeding vector database with sample internship opportunities...")
+# Ensure root folder path is available to imports
+BASE_DIR = Path(__file__).resolve().parent
+sys.path.append(str(BASE_DIR))
+
+from backend.utils.vector_store import add_jobs_to_vector_store
+
+def seed_database():
+    """
+    Populates ChromaDB with mock job roles and required skills using backend.utils.vector_store.
+    """
+    print("🌱 Initializing ChromaDB vector store...")
     
+    # Mock Job Postings matching vector_store requirements
     jobs = [
         {
-            "id": 1,
-            "title": "Data Science Intern",
-            "company": "TechCorp Solutions",
-            "description": "Looking for a Data Science Intern eager to work with large datasets. You will build predictive models, run SQL queries to retrieve unstructured data, and visualize patterns using Power BI. Heavy use of Python and Scikit-Learn expected.",
-            "skills": ["Python", "SQL", "Machine Learning", "Scikit-Learn", "Power BI"]
-        },
-        {
-            "id": 2,
+            "id": "job_1",
             "title": "Backend Engineering Intern",
-            "company": "CloudScale Apps",
-            "description": "Join our infrastructure engineering team. Responsibilities include building robust internal REST APIs using Python, optimizing relational database schemas via SQL, managing git workflows, and containerizing application clusters via Docker.",
-            "skills": ["Python", "SQL", "Git", "Docker", "Java"]
+            "company": "TechCorp Solutions",
+            "description": "Looking for a backend intern proficient in Python, SQL, REST APIs, and Docker to build scalable microservices.",
+            "requirements": ["Python", "SQL", "REST APIs", "Docker", "PostgreSQL", "Git"]
         },
         {
-            "id": 3,
-            "title": "Frontend Developer Intern",
-            "company": "Designify Studio",
-            "description": "Seeking an enthusiastic frontend intern to construct interactive user interfaces. Perfect knowledge of HTML, CSS, JavaScript, and framework libraries like React or Vue is required. Experience with Git is mandatory.",
-            "skills": ["Html", "Css", "JavaScript", "React", "Git"]
+            "id": "job_2",
+            "title": "Machine Learning Engineer Intern",
+            "company": "DataMind AI",
+            "description": "Seeking an ML intern to assist in training Deep Learning models, working with PyTorch, Scikit-Learn, and dataset preparation.",
+            "requirements": ["Python", "Machine Learning", "Deep Learning", "PyTorch", "Scikit-Learn", "Computer Vision"]
+        },
+        {
+            "id": "job_3",
+            "title": "Full Stack Web Developer",
+            "company": "NextGen Web",
+            "description": "Building interactive web platforms using React, Node.js, HTML/CSS, and MongoDB with CI/CD deployment pipelines.",
+            "requirements": ["React", "Node.Js", "Javascript", "Html", "Css", "MongoDB", "Ci/Cd", "Github"]
+        },
+        {
+            "id": "job_4",
+            "title": "Cloud & DevOps Intern",
+            "company": "CloudScale Systems",
+            "description": "Work on AWS infrastructure, Kubernetes orchestration, Docker containers, and automated CI/CD workflows.",
+            "requirements": ["Aws", "Azure", "Docker", "Kubernetes", "Ci/Cd", "Linux", "Bash"]
         }
     ]
     
-    for job in jobs:
-        add_job_description(
-            job_id=job["id"],
-            job_title=job["title"],
-            company=job["company"],
-            description_text=job["description"],
-            required_skills=job["skills"]
-        )
-        
-    print("🎉 Ingestion complete! Data is safely stored inside 'data/chroma_db/'.")
+    # Add jobs using the existing vector store utility
+    add_jobs_to_vector_store(jobs)
+    print("✅ Successfully seeded job database!")
 
 if __name__ == "__main__":
-    seed()
+    seed_database()
