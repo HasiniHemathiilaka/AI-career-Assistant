@@ -1,4 +1,5 @@
 import os
+import time
 from google import genai
 from dotenv import load_dotenv
 
@@ -16,8 +17,33 @@ if not api_key:
 # Explicitly pass api_key to the client
 client = genai.Client(api_key=api_key)
 
-# Active Gemini model identifier
-MODEL_ID = 'gemini-3.5-flash'
+# Active Gemini model identifier (Kept as requested)
+MODEL_ID =  'gemini-3.5-flash'
+
+
+def call_gemini_with_retry(prompt: str, max_retries: int = 3) -> str:
+    """
+    Central helper to invoke Gemini with exponential backoff retry logic
+    to gracefully handle temporary 503 UNAVAILABLE server spikes.
+    """
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model=MODEL_ID,
+                contents=prompt,
+            )
+            return response.text
+        except Exception as e:
+            err_msg = str(e)
+            
+            # Catch temporary 503 high-demand / server overload errors
+            if ("503" in err_msg or "UNAVAILABLE" in err_msg) and attempt < max_retries - 1:
+                # Exponential wait time: 2s, 4s, etc.
+                time.sleep(2 * (attempt + 1))
+                continue
+            
+            # Raise the final error if retries are exhausted or for non-503 errors
+            raise e
 
 
 def generate_learning_roadmap(role_title, missing_skills):
@@ -35,11 +61,7 @@ def generate_learning_roadmap(role_title, missing_skills):
     """
     
     try:
-        response = client.models.generate_content(
-            model=MODEL_ID,
-            contents=prompt,
-        )
-        return response.text
+        return call_gemini_with_retry(prompt)
     except Exception as e:
         return f"❌ Error connecting to Gemini API: {e}"
 
@@ -63,11 +85,7 @@ def generate_interview_feedback(role_title, question, student_answer):
     """
     
     try:
-        response = client.models.generate_content(
-            model=MODEL_ID,
-            contents=prompt,
-        )
-        return response.text
+        return call_gemini_with_retry(prompt)
     except Exception as e:
         return f"❌ Error evaluating answer: {e}"
 
@@ -92,11 +110,7 @@ def generate_cover_letter(role_title, company, job_description, candidate_name, 
     """
     
     try:
-        response = client.models.generate_content(
-            model=MODEL_ID,
-            contents=prompt,
-        )
-        return response.text
+        return call_gemini_with_retry(prompt)
     except Exception as e:
         return f"❌ Error generating cover letter: {e}"
 
@@ -130,11 +144,7 @@ def generate_portfolio_project_ideas(role_title, strengths, missing_skills):
     """
 
     try:
-        response = client.models.generate_content(
-            model=MODEL_ID,
-            contents=prompt,
-        )
-        return response.text
+        return call_gemini_with_retry(prompt)
     except Exception as e:
         return f"❌ Error generating project ideas: {e}"
 
@@ -169,10 +179,6 @@ def generate_project_readme_starter(project_name, role_title, tech_stack):
     """
 
     try:
-        response = client.models.generate_content(
-            model=MODEL_ID,
-            contents=prompt,
-        )
-        return response.text
+        return call_gemini_with_retry(prompt)
     except Exception as e:
         return f"❌ Error generating README starter: {e}"

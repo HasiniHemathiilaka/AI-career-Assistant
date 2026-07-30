@@ -25,9 +25,19 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- LIGHT GRAY CONTAINER BACKGROUNDS WITH DARK SELECTED TEXT ---
+# --- BALANCED HIGH-CONTRAST STYLING & TOP HEADER REMOVAL ---
 st.markdown("""
     <style>
+    /* HIDE DEFAULT STREAMLIT TOP WHITE BAR & FIX PADDING */
+    header[data-testid="stHeader"] {
+        background-color: transparent !important;
+        display: none !important;
+    }
+
+    .block-container {
+        padding-top: 1.5rem !important;
+    }
+
     /* Global Background & Default White Typography */
     .stApp {
         background-color: #0F172A;
@@ -126,24 +136,22 @@ st.markdown("""
         border-color: #00FF88 !important;
     }
 
-    /* 4. Closed Selectbox Container and Selected Role Text Fix */
+    /* 4. Closed Selectbox Container and Selected Role Text */
     div[data-baseweb="select"] > div {
-        background-color: #E2E8F0 !important; /* Soft Light Gray Container */
+        background-color: #E2E8F0 !important;
         border: 1px solid #94A3B8 !important;
         border-radius: 8px !important;
     }
 
-    /* FORCE SELECTED ROLE TEXT TO DARK CHARCOAL (#0F172A) */
     div[data-baseweb="select"] span, 
     div[data-baseweb="select"] div,
     [data-testid="stSelectbox"] div[data-baseweb="select"] *,
     [data-testid="stSelectbox"] span {
-        color: #0F172A !important; /* Dark text for selected role */
+        color: #0F172A !important;
         font-weight: 700 !important;
         font-size: 1rem !important;
     }
 
-    /* Dropdown arrow icon color */
     div[data-baseweb="select"] svg {
         fill: #0F172A !important;
     }
