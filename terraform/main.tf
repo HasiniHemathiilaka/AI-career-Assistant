@@ -2,13 +2,13 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# 1. AWS Container Registry (ECR) to store Docker images
+# 1. Amazon ECR repository to hold your Docker container images
 resource "aws_ecr_repository" "app_repo" {
   name                 = "ai-career-assistant"
   image_tag_mutability = "MUTABLE"
 }
 
-# 2. Security Group for Free Tier EC2 instance
+# 2. Security Group allowing inbound traffic for SSH, Streamlit, and Prometheus
 resource "aws_security_group" "app_sg" {
   name        = "ai-assistant-security-group"
   description = "Allow inbound SSH, Streamlit, and Prometheus traffic"
@@ -46,9 +46,9 @@ resource "aws_security_group" "app_sg" {
   }
 }
 
-# 3. Free Tier EC2 Instance (Ubuntu 22.04 LTS)
+# 3. Free Tier EC2 Instance (Ubuntu 22.04 LTS with Docker pre-installed)
 resource "aws_instance" "app_server" {
-  ami           = "ami-0c7217cdde317cfec" # Ubuntu 22.04 LTS (us-east-1)
+  ami           = "ami-0c7217cdde317cfec" # Ubuntu 22.04 LTS in us-east-1
   instance_type = "t3.micro"               # AWS Free Tier eligible
   security_groups = [aws_security_group.app_sg.name]
 
@@ -66,7 +66,7 @@ resource "aws_instance" "app_server" {
   }
 }
 
-# Output values needed for CI/CD setup
+# Outputs automatically displayed after deployment
 output "ec2_public_ip" {
   description = "The public IP of your EC2 server"
   value       = aws_instance.app_server.public_ip
