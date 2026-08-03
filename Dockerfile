@@ -15,10 +15,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rustc \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip and wheel to ensure pre-compiled binary packages are pulled
+# Upgrade pip and wheel
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -r requirements.txt
+
+# 👇 ADD THIS LINE: Download the spaCy English model inside the container
+RUN python -m spacy download en_core_web_sm
 
 # Copy all project code
 COPY . .
